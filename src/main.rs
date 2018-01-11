@@ -1,6 +1,8 @@
 extern crate reqwest;
 extern crate clap;
+extern crate num;
 
+use std::fmt;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::prelude::*;
@@ -32,6 +34,9 @@ fn main() {
                         .index(1),
                 ),
         )
+        .subcommand(SubCommand::with_name("iters").about(
+            "stupid iterator tricks",
+        ))
         .get_matches();
 
     match matches.subcommand() {
@@ -44,6 +49,9 @@ fn main() {
             let url = sub_m.value_of("url").expect("url required");
             let wordcount = words_in_url(url).expect("unable to read from url");
             println!("{}: {} words", url, wordcount);
+        }
+        ("iters", _) => {
+            stupid_iterator_tricks();
         }
         _ => println!("{}", matches.usage()),
     }
@@ -82,4 +90,50 @@ fn words_in_url(url: &str) -> Result<usize, std::io::Error> {
 
     let count = buf.split_whitespace().count();
     Ok(count)
+}
+
+enum NumberClass {
+    Even,
+    Odd,
+    Zero,
+}
+
+impl fmt::Display for NumberClass {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            &NumberClass::Even => write!(f, "Even"),
+            &NumberClass::Odd => write!(f, "Odd"),
+            &NumberClass::Zero => write!(f, "Zero"),
+        }
+    }
+}
+
+impl From<usize> for NumberClass {
+    fn from(num: usize) -> Self {
+        if num == 0 {
+            return NumberClass::Zero;
+        }
+
+        if num % 2 == 0 {
+            NumberClass::Even
+        } else {
+            NumberClass::Odd
+        }
+    }
+}
+
+fn stupid_iterator_tricks() {
+    let evens = (1..).filter(|x| x % 2 == 0);
+    let first_ten_evens: Vec<usize> = evens.take(10).collect();
+    // let first_ten_evens = evens.take(10).collect::<Vec<usize>>();
+    println!("first 10 {:?}", first_ten_evens);
+
+    let evens = (1..).filter(|x| x % 2 == 0);
+    println!(
+        "21 to 30 {:?}",
+        evens.skip(20).take(10).collect::<Vec<usize>>()
+    );
+
+    let nclass = NumberClass::from(13);
+    println!("thirteen is {}", nclass);
 }
